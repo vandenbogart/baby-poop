@@ -21,6 +21,7 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'log' | 'timeline'>('log')
+  const [currentUser, setCurrentUser] = useState<string>('')
   
   // Modal states
   const [showDurationPicker, setShowDurationPicker] = useState(false)
@@ -29,8 +30,30 @@ export default function Home() {
   const [feedingPromptType, setFeedingPromptType] = useState<'POOP' | 'PEE' | null>(null)
 
   useEffect(() => {
+    fetchSession()
     fetchEvents()
   }, [])
+
+  const fetchSession = async () => {
+    try {
+      const response = await fetch('/api/auth/session')
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentUser(data.username)
+      }
+    } catch (error) {
+      console.error('Error fetching session:', error)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
 
   const fetchEvents = async () => {
     try {
@@ -116,15 +139,28 @@ export default function Home() {
       {/* Header */}
       <header className="bg-gradient-to-r from-pink-100 via-blue-100 to-purple-100 border-b-4 border-white/50 sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-            👶 Baby Tracker
-          </h1>
-          <Link 
-            href="/patterns"
-            className="px-4 py-2 bg-white/60 hover:bg-white/80 backdrop-blur-sm rounded-full font-medium text-sm text-purple-600 hover:text-purple-700 transition-all shadow-sm hover:shadow-md"
-          >
-            Patterns ✨
-          </Link>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+              👶 Baby Tracker
+            </h1>
+            {currentUser && (
+              <p className="text-sm text-gray-600 mt-1">Logged in as {currentUser}</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Link 
+              href="/patterns"
+              className="px-4 py-2 bg-white/60 hover:bg-white/80 backdrop-blur-sm rounded-full font-medium text-sm text-purple-600 hover:text-purple-700 transition-all shadow-sm hover:shadow-md"
+            >
+              Patterns ✨
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-white/60 hover:bg-white/80 backdrop-blur-sm rounded-full font-medium text-sm text-gray-700 hover:text-gray-900 transition-all shadow-sm hover:shadow-md"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

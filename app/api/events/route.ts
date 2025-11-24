@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getIronSession } from 'iron-session'
+import { sessionOptions, SessionData } from '@/lib/session'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +28,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions)
+    
+    if (!session.isLoggedIn) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { type, timestamp, notes, duration, duringFeeding } = body
     
@@ -41,7 +54,8 @@ export async function POST(request: NextRequest) {
         timestamp: new Date(timestamp),
         notes: notes || null,
         duration: duration || null,
-        duringFeeding: duringFeeding ?? null
+        duringFeeding: duringFeeding ?? null,
+        userId: session.userId
       }
     })
     

@@ -14,6 +14,14 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  events    Event[]
+}
+
 model Event {
   id            String    @id @default(cuid())
   type          EventType
@@ -21,10 +29,13 @@ model Event {
   notes         String?
   duration      Int?      // Duration in minutes (for NAP and FEED)
   duringFeeding Boolean?  // Whether POOP or PEE occurred during feeding
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
   createdAt     DateTime  @default(now())
 
   @@index([timestamp])
   @@index([type])
+  @@index([userId])
 }
 
 enum EventType {
