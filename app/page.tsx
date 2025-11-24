@@ -72,45 +72,47 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-gradient-to-r from-pink-100 via-blue-100 to-purple-100 border-b-4 border-white/50 sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Baby Tracker</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            👶 Baby Tracker
+          </h1>
           <Link 
             href="/patterns"
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            className="px-4 py-2 bg-white/60 hover:bg-white/80 backdrop-blur-sm rounded-full font-medium text-sm text-purple-600 hover:text-purple-700 transition-all shadow-sm hover:shadow-md"
           >
-            Patterns →
+            Patterns ✨
           </Link>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-2xl mx-auto px-4 py-6 relative z-10">
         {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-3 mb-6">
           <button
             onClick={() => setActiveTab('log')}
             className={`
-              flex-1 py-3 px-4 rounded-lg font-medium transition-colors
+              flex-1 py-3 px-4 rounded-2xl font-semibold transition-all shadow-lg
               ${activeTab === 'log' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 border border-gray-300'}
+                ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white scale-105' 
+                : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:scale-105'}
             `}
           >
-            Quick Log
+            📝 Quick Log
           </button>
           <button
             onClick={() => setActiveTab('timeline')}
             className={`
-              flex-1 py-3 px-4 rounded-lg font-medium transition-colors
+              flex-1 py-3 px-4 rounded-2xl font-semibold transition-all shadow-lg
               ${activeTab === 'timeline' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 border border-gray-300'}
+                ? 'bg-gradient-to-r from-blue-400 to-teal-400 text-white scale-105' 
+                : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:scale-105'}
             `}
           >
-            Timeline
+            ⏰ Timeline
           </button>
         </div>
 
@@ -118,7 +120,9 @@ export default function Home() {
           <>
             {/* Today's Stats */}
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Today's Summary</h2>
+              <h2 className="text-2xl font-bold mb-4 text-transparent bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text">
+                ✨ Today's Summary
+              </h2>
               <div className="grid grid-cols-2 gap-3">
                 <StatsCard 
                   title="Poops" 
@@ -138,34 +142,36 @@ export default function Home() {
                 <StatsCard 
                   title="Total" 
                   value={todayStats.total} 
-                  icon="📊"
+                  icon="🎉"
                 />
               </div>
             </div>
 
             {/* Quick Log Buttons */}
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Log Event</h2>
+              <h2 className="text-2xl font-bold mb-4 text-transparent bg-gradient-to-r from-blue-500 to-teal-500 bg-clip-text">
+                🎯 Log Event
+              </h2>
               <div className="grid grid-cols-1 gap-4">
                 <EventButton
                   icon="💩"
                   label="Poop"
                   onClick={() => logEvent('POOP')}
-                  color="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                  color="bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 hover:from-amber-400 hover:to-orange-500"
                   disabled={loading}
                 />
                 <EventButton
                   icon="💧"
                   label="Pee"
                   onClick={() => logEvent('PEE')}
-                  color="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                  color="bg-gradient-to-br from-blue-300 via-blue-400 to-cyan-400 hover:from-blue-400 hover:to-cyan-500"
                   disabled={loading}
                 />
                 <EventButton
                   icon="☀️"
                   label="Wake Up"
                   onClick={() => logEvent('WAKE')}
-                  color="bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
+                  color="bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-300 hover:from-yellow-400 hover:to-amber-400"
                   disabled={loading}
                 />
               </div>
@@ -174,15 +180,19 @@ export default function Home() {
             {/* Recent Events Preview */}
             {todayEvents.length > 0 && (
               <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-3">Recent Events</h2>
-                <EventTimeline events={todayEvents.slice(0, 3)} />
+                <h2 className="text-2xl font-bold mb-4 text-transparent bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text">
+                  🕐 Recent Events
+                </h2>
+                <EventTimeline events={todayEvents.slice(0, 3)} onEventUpdate={fetchEvents} />
               </div>
             )}
           </>
         ) : (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Event Timeline</h2>
-            <EventTimeline events={events} />
+            <h2 className="text-2xl font-bold mb-4 text-transparent bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text">
+              📅 Event Timeline
+            </h2>
+            <EventTimeline events={events} onEventUpdate={fetchEvents} />
           </div>
         )}
       </main>
