@@ -10,7 +10,7 @@ import Link from 'next/link'
 
 interface Event {
   id: string
-  type: 'POOP' | 'PEE' | 'WAKE' | 'NAP' | 'FEED' | 'DIAPER'
+  type: 'POOP' | 'PEE' | 'NAP' | 'FEED' | 'DIAPER'
   timestamp: string
   notes?: string | null
   duration?: number | null
@@ -44,7 +44,7 @@ export default function Home() {
     }
   }
 
-  const logEvent = async (type: 'POOP' | 'PEE' | 'WAKE' | 'NAP' | 'FEED' | 'DIAPER', duration?: number, duringFeeding?: boolean) => {
+  const logEvent = async (type: 'POOP' | 'PEE' | 'NAP' | 'FEED' | 'DIAPER', duration?: number, duringFeeding?: boolean) => {
     setLoading(true)
     try {
       const response = await fetch('/api/events', {
@@ -106,7 +106,6 @@ export default function Home() {
     total: todayEvents.length,
     poops: todayEvents.filter(e => e.type === 'POOP').length,
     pees: todayEvents.filter(e => e.type === 'PEE').length,
-    wakes: todayEvents.filter(e => e.type === 'WAKE').length,
     naps: todayEvents.filter(e => e.type === 'NAP').length,
     feeds: todayEvents.filter(e => e.type === 'FEED').length,
     diapers: todayEvents.filter(e => e.type === 'DIAPER').length
@@ -227,13 +226,6 @@ export default function Home() {
                   label="Pee"
                   onClick={() => handlePoopPeeClick('PEE')}
                   color="bg-gradient-to-br from-blue-300 via-blue-400 to-cyan-400 hover:from-blue-400 hover:to-cyan-500"
-                  disabled={loading}
-                />
-                <EventButton
-                  icon="☀️"
-                  label="Wake Up"
-                  onClick={() => logEvent('WAKE')}
-                  color="bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-300 hover:from-yellow-400 hover:to-amber-400"
                   disabled={loading}
                 />
               </div>

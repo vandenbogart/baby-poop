@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 interface Event {
   id: string
-  type: 'POOP' | 'PEE' | 'WAKE' | 'NAP' | 'FEED' | 'DIAPER'
+  type: 'POOP' | 'PEE' | 'NAP' | 'FEED' | 'DIAPER'
   timestamp: string
   notes?: string | null
   duration?: number | null
@@ -26,11 +26,6 @@ const eventConfig = {
     emoji: '💧',
     label: 'Pee',
     color: 'bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-800 border-blue-200'
-  },
-  WAKE: {
-    emoji: '☀️',
-    label: 'Wake',
-    color: 'bg-gradient-to-br from-yellow-100 to-amber-100 text-yellow-800 border-yellow-200'
   },
   NAP: {
     emoji: '😴',
@@ -56,6 +51,24 @@ function formatTime(timestamp: string) {
     minute: '2-digit',
     hour12: true 
   })
+}
+
+function formatDurationRange(timestamp: string, durationMinutes: number) {
+  const endTime = new Date(timestamp)
+  const startTime = new Date(endTime.getTime() - durationMinutes * 60 * 1000)
+  
+  const startStr = startTime.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  })
+  const endStr = endTime.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  })
+  
+  return `${startStr} - ${endStr}`
 }
 
 function formatDate(timestamp: string) {
@@ -170,9 +183,12 @@ export function EventTimeline({ events, onEventUpdate }: EventTimelineProps) {
                       <div className="font-bold text-lg">{config.label}</div>
                       {event.duration && (
                         <div className="text-sm opacity-80 mt-1">
-                          ⏱️ {event.duration < 60 
-                            ? `${event.duration} min` 
-                            : `${Math.floor(event.duration / 60)} hr${Math.floor(event.duration / 60) > 1 ? 's' : ''} ${event.duration % 60 > 0 ? `${event.duration % 60} min` : ''}`}
+                          ⏱️ {formatDurationRange(event.timestamp, event.duration)}
+                          <span className="text-xs ml-2">
+                            ({event.duration < 60 
+                              ? `${event.duration} min` 
+                              : `${Math.floor(event.duration / 60)} hr${Math.floor(event.duration / 60) > 1 ? 's' : ''} ${event.duration % 60 > 0 ? `${event.duration % 60} min` : ''}`})
+                          </span>
                         </div>
                       )}
                       {event.duringFeeding !== null && event.duringFeeding !== undefined && (

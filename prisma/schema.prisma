@@ -30,7 +30,6 @@ model Event {
 enum EventType {
   POOP
   PEE
-  WAKE
   NAP
   FEED
   DIAPER

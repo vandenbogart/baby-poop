@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
       byType: {
         POOP: events.filter(e => e.type === 'POOP').length,
         PEE: events.filter(e => e.type === 'PEE').length,
-        WAKE: events.filter(e => e.type === 'WAKE').length
+        NAP: events.filter(e => e.type === 'NAP').length,
+        FEED: events.filter(e => e.type === 'FEED').length,
+        DIAPER: events.filter(e => e.type === 'DIAPER').length
       },
       byDay: {} as Record<string, number>,
       averagePerDay: 0,

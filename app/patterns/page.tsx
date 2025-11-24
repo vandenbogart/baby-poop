@@ -9,7 +9,9 @@ interface Stats {
   byType: {
     POOP: number
     PEE: number
-    WAKE: number
+    NAP: number
+    FEED: number
+    DIAPER: number
   }
   byDay: Record<string, number>
   averagePerDay: number
@@ -122,6 +124,21 @@ export default function PatternsPage() {
               </h2>
               <div className="grid grid-cols-3 gap-3">
                 <StatsCard 
+                  title="Feeds" 
+                  value={stats.byType.FEED}
+                  icon="🍼"
+                />
+                <StatsCard 
+                  title="Naps" 
+                  value={stats.byType.NAP}
+                  icon="😴"
+                />
+                <StatsCard 
+                  title="Diapers" 
+                  value={stats.byType.DIAPER}
+                  icon="🧷"
+                />
+                <StatsCard 
                   title="Poops" 
                   value={stats.byType.POOP}
                   icon="💩"
@@ -130,11 +147,6 @@ export default function PatternsPage() {
                   title="Pees" 
                   value={stats.byType.PEE}
                   icon="💧"
-                />
-                <StatsCard 
-                  title="Wakes" 
-                  value={stats.byType.WAKE}
-                  icon="☀️"
                 />
               </div>
             </div>

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { type, timestamp, notes } = body
+    const { type, timestamp, notes, duration, duringFeeding } = body
     
     if (!type || !timestamp) {
       return NextResponse.json(
@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
       data: {
         type,
         timestamp: new Date(timestamp),
-        notes: notes || null
+        notes: notes || null,
+        duration: duration || null,
+        duringFeeding: duringFeeding ?? null
       }
     })
     
