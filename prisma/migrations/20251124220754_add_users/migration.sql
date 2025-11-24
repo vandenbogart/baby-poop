@@ -12,8 +12,9 @@ CREATE TABLE "User" (
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 INSERT INTO "User" ("id", "username", "password", "createdAt") VALUES
-('default_user_aja', 'Aja', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', CURRENT_TIMESTAMP),
-('default_user_eric', 'Eric', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', CURRENT_TIMESTAMP);
+('default_user_aja', 'Aja', '$2b$10$UNcqXVI5q/ReXgaBNoIlHOvLniHWZLcN03/MlLhcNc9WWrc9KGe5S', CURRENT_TIMESTAMP),
+('default_user_eric', 'Eric', '$2b$10$UNcqXVI5q/ReXgaBNoIlHOvLniHWZLcN03/MlLhcNc9WWrc9KGe5S', CURRENT_TIMESTAMP)
+ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password;
 
 -- AlterTable - Add userId column with default value pointing to Aja
 ALTER TABLE "Event" ADD COLUMN "userId" TEXT NOT NULL DEFAULT 'default_user_aja';

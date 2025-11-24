@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid username or password' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     
     if (!isValid) {
       return NextResponse.json(
-        { error: 'Invalid username or password' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       )
     }

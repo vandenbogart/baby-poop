@@ -63,7 +63,7 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-purple-400 focus:outline-none text-gray-800"
-              placeholder="Aja or Eric"
+              placeholder="Enter username"
               required
               disabled={loading}
             />
@@ -79,7 +79,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-purple-400 focus:outline-none text-gray-800"
-              placeholder="password"
+              placeholder="Enter password"
               required
               disabled={loading}
             />
@@ -99,11 +99,6 @@ export default function LoginPage() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Use: Aja / password</p>
-          <p>or Eric / password</p>
-        </div>
       </div>
     </div>
   )
