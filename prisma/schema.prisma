@@ -15,11 +15,13 @@ datasource db {
 }
 
 model Event {
-  id        String   @id @default(cuid())
-  type      EventType
-  timestamp DateTime
-  notes     String?
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  type          EventType
+  timestamp     DateTime
+  notes         String?
+  duration      Int?      // Duration in minutes (for NAP and FEED)
+  duringFeeding Boolean?  // Whether POOP or PEE occurred during feeding
+  createdAt     DateTime  @default(now())
 
   @@index([timestamp])
   @@index([type])
@@ -29,4 +31,7 @@ enum EventType {
   POOP
   PEE
   WAKE
+  NAP
+  FEED
+  DIAPER
 }

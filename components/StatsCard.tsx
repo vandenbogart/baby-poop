@@ -10,6 +10,9 @@ export function StatsCard({ title, value, icon, subtitle }: StatsCardProps) {
     'Poops': 'from-amber-200 to-orange-200',
     'Pees': 'from-blue-200 to-cyan-200',
     'Wakes': 'from-yellow-200 to-amber-200',
+    'Naps': 'from-indigo-200 to-purple-200',
+    'Feeds': 'from-pink-200 to-rose-200',
+    'Diapers': 'from-teal-200 to-cyan-200',
     'Total': 'from-purple-200 to-pink-200'
   }
   

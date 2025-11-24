@@ -4,9 +4,11 @@ import { useState } from 'react'
 
 interface Event {
   id: string
-  type: 'POOP' | 'PEE' | 'WAKE'
+  type: 'POOP' | 'PEE' | 'WAKE' | 'NAP' | 'FEED' | 'DIAPER'
   timestamp: string
   notes?: string | null
+  duration?: number | null
+  duringFeeding?: boolean | null
 }
 
 interface EventTimelineProps {
@@ -29,6 +31,21 @@ const eventConfig = {
     emoji: '☀️',
     label: 'Wake',
     color: 'bg-gradient-to-br from-yellow-100 to-amber-100 text-yellow-800 border-yellow-200'
+  },
+  NAP: {
+    emoji: '😴',
+    label: 'Nap',
+    color: 'bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-800 border-indigo-200'
+  },
+  FEED: {
+    emoji: '🍼',
+    label: 'Feeding',
+    color: 'bg-gradient-to-br from-pink-100 to-rose-100 text-pink-800 border-pink-200'
+  },
+  DIAPER: {
+    emoji: '🧷',
+    label: 'Diaper',
+    color: 'bg-gradient-to-br from-teal-100 to-cyan-100 text-teal-800 border-teal-200'
   }
 }
 
@@ -151,6 +168,19 @@ export function EventTimeline({ events, onEventUpdate }: EventTimelineProps) {
                     <span className="text-3xl">{config.emoji}</span>
                     <div className="flex-1">
                       <div className="font-bold text-lg">{config.label}</div>
+                      {event.duration && (
+                        <div className="text-sm opacity-80 mt-1">
+                          ⏱️ {event.duration < 60 
+                            ? `${event.duration} min` 
+                            : `${Math.floor(event.duration / 60)} hr${Math.floor(event.duration / 60) > 1 ? 's' : ''} ${event.duration % 60 > 0 ? `${event.duration % 60} min` : ''}`}
+                        </div>
+                      )}
+                      {event.duringFeeding !== null && event.duringFeeding !== undefined && (
+                        <div className="text-xs opacity-80 mt-1 flex items-center gap-1">
+                          <span>🍼</span>
+                          <span>{event.duringFeeding ? 'During feeding' : 'Not during feeding'}</span>
+                        </div>
+                      )}
                       {event.notes && (
                         <div className="text-sm opacity-80 mt-1">{event.notes}</div>
                       )}

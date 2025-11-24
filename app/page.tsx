@@ -4,19 +4,29 @@ import { useState, useEffect } from 'react'
 import { EventButton } from '@/components/EventButton'
 import { EventTimeline } from '@/components/EventTimeline'
 import { StatsCard } from '@/components/StatsCard'
+import { DurationPicker } from '@/components/DurationPicker'
+import { FeedingPrompt } from '@/components/FeedingPrompt'
 import Link from 'next/link'
 
 interface Event {
   id: string
-  type: 'POOP' | 'PEE' | 'WAKE'
+  type: 'POOP' | 'PEE' | 'WAKE' | 'NAP' | 'FEED' | 'DIAPER'
   timestamp: string
   notes?: string | null
+  duration?: number | null
+  duringFeeding?: boolean | null
 }
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'log' | 'timeline'>('log')
+  
+  // Modal states
+  const [showDurationPicker, setShowDurationPicker] = useState(false)
+  const [durationPickerType, setDurationPickerType] = useState<'NAP' | 'FEED' | null>(null)
+  const [showFeedingPrompt, setShowFeedingPrompt] = useState(false)
+  const [feedingPromptType, setFeedingPromptType] = useState<'POOP' | 'PEE' | null>(null)
 
   useEffect(() => {
     fetchEvents()
@@ -34,7 +44,7 @@ export default function Home() {
     }
   }
 
-  const logEvent = async (type: 'POOP' | 'PEE' | 'WAKE') => {
+  const logEvent = async (type: 'POOP' | 'PEE' | 'WAKE' | 'NAP' | 'FEED' | 'DIAPER', duration?: number, duringFeeding?: boolean) => {
     setLoading(true)
     try {
       const response = await fetch('/api/events', {
@@ -44,7 +54,9 @@ export default function Home() {
         },
         body: JSON.stringify({
           type,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          duration: duration || null,
+          duringFeeding: duringFeeding ?? null
         })
       })
 
@@ -58,6 +70,32 @@ export default function Home() {
     }
   }
 
+  const handlePoopPeeClick = (type: 'POOP' | 'PEE') => {
+    setFeedingPromptType(type)
+    setShowFeedingPrompt(true)
+  }
+
+  const handleFeedingResponse = (duringFeeding: boolean) => {
+    if (feedingPromptType) {
+      logEvent(feedingPromptType, undefined, duringFeeding)
+    }
+    setShowFeedingPrompt(false)
+    setFeedingPromptType(null)
+  }
+
+  const handleNapFeedClick = (type: 'NAP' | 'FEED') => {
+    setDurationPickerType(type)
+    setShowDurationPicker(true)
+  }
+
+  const handleDurationSelect = (minutes: number) => {
+    if (durationPickerType) {
+      logEvent(durationPickerType, minutes)
+    }
+    setShowDurationPicker(false)
+    setDurationPickerType(null)
+  }
+
   const todayEvents = events.filter(event => {
     const eventDate = new Date(event.timestamp)
     const today = new Date()
@@ -68,7 +106,10 @@ export default function Home() {
     total: todayEvents.length,
     poops: todayEvents.filter(e => e.type === 'POOP').length,
     pees: todayEvents.filter(e => e.type === 'PEE').length,
-    wakes: todayEvents.filter(e => e.type === 'WAKE').length
+    wakes: todayEvents.filter(e => e.type === 'WAKE').length,
+    naps: todayEvents.filter(e => e.type === 'NAP').length,
+    feeds: todayEvents.filter(e => e.type === 'FEED').length,
+    diapers: todayEvents.filter(e => e.type === 'DIAPER').length
   }
 
   return (
@@ -125,19 +166,19 @@ export default function Home() {
               </h2>
               <div className="grid grid-cols-2 gap-3">
                 <StatsCard 
-                  title="Poops" 
-                  value={todayStats.poops} 
-                  icon="💩"
+                  title="Feeds" 
+                  value={todayStats.feeds} 
+                  icon="🍼"
                 />
                 <StatsCard 
-                  title="Pees" 
-                  value={todayStats.pees} 
-                  icon="💧"
+                  title="Diapers" 
+                  value={todayStats.diapers} 
+                  icon="🧷"
                 />
                 <StatsCard 
-                  title="Wakes" 
-                  value={todayStats.wakes} 
-                  icon="☀️"
+                  title="Naps" 
+                  value={todayStats.naps} 
+                  icon="😴"
                 />
                 <StatsCard 
                   title="Total" 
@@ -154,16 +195,37 @@ export default function Home() {
               </h2>
               <div className="grid grid-cols-1 gap-4">
                 <EventButton
+                  icon="🍼"
+                  label="Feeding"
+                  onClick={() => handleNapFeedClick('FEED')}
+                  color="bg-gradient-to-br from-pink-300 via-pink-400 to-rose-400 hover:from-pink-400 hover:to-rose-500"
+                  disabled={loading}
+                />
+                <EventButton
+                  icon="😴"
+                  label="Nap"
+                  onClick={() => handleNapFeedClick('NAP')}
+                  color="bg-gradient-to-br from-indigo-300 via-purple-400 to-purple-400 hover:from-indigo-400 hover:to-purple-500"
+                  disabled={loading}
+                />
+                <EventButton
+                  icon="🧷"
+                  label="Diaper Change"
+                  onClick={() => logEvent('DIAPER')}
+                  color="bg-gradient-to-br from-teal-300 via-teal-400 to-cyan-400 hover:from-teal-400 hover:to-cyan-500"
+                  disabled={loading}
+                />
+                <EventButton
                   icon="💩"
                   label="Poop"
-                  onClick={() => logEvent('POOP')}
+                  onClick={() => handlePoopPeeClick('POOP')}
                   color="bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 hover:from-amber-400 hover:to-orange-500"
                   disabled={loading}
                 />
                 <EventButton
                   icon="💧"
                   label="Pee"
-                  onClick={() => logEvent('PEE')}
+                  onClick={() => handlePoopPeeClick('PEE')}
                   color="bg-gradient-to-br from-blue-300 via-blue-400 to-cyan-400 hover:from-blue-400 hover:to-cyan-500"
                   disabled={loading}
                 />
@@ -196,6 +258,32 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Modals */}
+      {showDurationPicker && durationPickerType && (
+        <DurationPicker
+          title={durationPickerType === 'NAP' ? 'Nap Duration' : 'Feeding Duration'}
+          icon={durationPickerType === 'NAP' ? '😴' : '🍼'}
+          increment={durationPickerType === 'NAP' ? 15 : 5}
+          maxMinutes={durationPickerType === 'NAP' ? 300 : 120}
+          onSelect={handleDurationSelect}
+          onCancel={() => {
+            setShowDurationPicker(false)
+            setDurationPickerType(null)
+          }}
+        />
+      )}
+
+      {showFeedingPrompt && feedingPromptType && (
+        <FeedingPrompt
+          eventType={feedingPromptType}
+          onSelect={handleFeedingResponse}
+          onCancel={() => {
+            setShowFeedingPrompt(false)
+            setFeedingPromptType(null)
+          }}
+        />
+      )}
     </div>
   )
 }
