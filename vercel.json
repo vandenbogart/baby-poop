@@ -1,3 +1,3 @@
 {
-  "buildCommand": "prisma generate && prisma migrate deploy && next build"
+  "buildCommand": "prisma generate && prisma migrate deploy && npx tsx scripts/seed-users.ts && next build"
 }
