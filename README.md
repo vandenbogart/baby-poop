@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Baby Tracker
+
+A mobile-first Progressive Web App (PWA) for tracking your baby's poops, pees, and wake times. Built with Next.js, TypeScript, Tailwind CSS, and Vercel Postgres.
+
+## Features
+
+- **Quick Log**: Large, touch-friendly buttons for logging events
+- **Timeline View**: See all events chronologically with date grouping
+- **Today's Summary**: Quick stats for today's activities
+- **Patterns & Insights**: Analyze patterns over 3, 7, 14, or 30 days
+- **Mobile-First Design**: Optimized for phone screens with responsive layout
+- **PWA Support**: Install on your phone for a native app experience
+- **Dark Mode**: Automatically adapts to system preferences
+
+## Tech Stack
+
+- Next.js 14+ (App Router)
+- TypeScript
+- Tailwind CSS v4
+- Prisma ORM
+- Vercel Postgres
+- Progressive Web App (PWA)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Set up environment variables:
+
+Create a `.env` file in the root directory:
+
+```env
+POSTGRES_PRISMA_URL="your_postgres_prisma_url"
+POSTGRES_URL_NON_POOLING="your_postgres_url_non_pooling"
+```
+
+4. Generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+5. Run Prisma migration (requires a running PostgreSQL database):
+
+```bash
+npx prisma migrate dev --name init
+```
+
+Note: You'll need a PostgreSQL database running locally or use the connection string from Vercel Postgres.
+
+6. Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploying to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Push your code to GitHub
+2. Import the project in Vercel
+3. Add a Vercel Postgres database:
+   - Go to the Storage tab in your Vercel project
+   - Click "Create Database" and select "Postgres"
+   - Vercel will automatically set the environment variables
+4. Deploy!
 
-## Learn More
+After deployment, run the Prisma migration in your Vercel project:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npx prisma migrate deploy
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database Schema
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app uses a single `Event` table:
 
-## Deploy on Vercel
+- `id`: Unique identifier
+- `type`: Event type (POOP, PEE, WAKE)
+- `timestamp`: When the event occurred
+- `notes`: Optional notes
+- `createdAt`: When the event was logged
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+/app
+  /api/events        # API routes for CRUD operations
+  /patterns          # Patterns and insights page
+  page.tsx           # Main quick log page
+/components          # Reusable UI components
+/lib                 # Database client and utilities
+/prisma              # Database schema
+/public              # Static assets and PWA manifest
+```
+
+## License
+
+MIT

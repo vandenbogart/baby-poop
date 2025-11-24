@@ -1,65 +1,191 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import { EventButton } from '@/components/EventButton'
+import { EventTimeline } from '@/components/EventTimeline'
+import { StatsCard } from '@/components/StatsCard'
+import Link from 'next/link'
+
+interface Event {
+  id: string
+  type: 'POOP' | 'PEE' | 'WAKE'
+  timestamp: string
+  notes?: string | null
+}
 
 export default function Home() {
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'log' | 'timeline'>('log')
+
+  useEffect(() => {
+    fetchEvents()
+  }, [])
+
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('/api/events?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setEvents(data)
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error)
+    }
+  }
+
+  const logEvent = async (type: 'POOP' | 'PEE' | 'WAKE') => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type,
+          timestamp: new Date().toISOString()
+        })
+      })
+
+      if (response.ok) {
+        await fetchEvents()
+      }
+    } catch (error) {
+      console.error('Error logging event:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const todayEvents = events.filter(event => {
+    const eventDate = new Date(event.timestamp)
+    const today = new Date()
+    return eventDate.toDateString() === today.toDateString()
+  })
+
+  const todayStats = {
+    total: todayEvents.length,
+    poops: todayEvents.filter(e => e.type === 'POOP').length,
+    pees: todayEvents.filter(e => e.type === 'PEE').length,
+    wakes: todayEvents.filter(e => e.type === 'WAKE').length
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Baby Tracker</h1>
+          <Link 
+            href="/patterns"
+            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Patterns →
+          </Link>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-2xl mx-auto px-4 py-6">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('log')}
+            className={`
+              flex-1 py-3 px-4 rounded-lg font-medium transition-colors
+              ${activeTab === 'log' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 border border-gray-300'}
+            `}
+          >
+            Quick Log
+          </button>
+          <button
+            onClick={() => setActiveTab('timeline')}
+            className={`
+              flex-1 py-3 px-4 rounded-lg font-medium transition-colors
+              ${activeTab === 'timeline' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-gray-700 border border-gray-300'}
+            `}
+          >
+            Timeline
+          </button>
+        </div>
+
+        {activeTab === 'log' ? (
+          <>
+            {/* Today's Stats */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Today's Summary</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <StatsCard 
+                  title="Poops" 
+                  value={todayStats.poops} 
+                  icon="💩"
+                />
+                <StatsCard 
+                  title="Pees" 
+                  value={todayStats.pees} 
+                  icon="💧"
+                />
+                <StatsCard 
+                  title="Wakes" 
+                  value={todayStats.wakes} 
+                  icon="☀️"
+                />
+                <StatsCard 
+                  title="Total" 
+                  value={todayStats.total} 
+                  icon="📊"
+                />
+              </div>
+            </div>
+
+            {/* Quick Log Buttons */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Log Event</h2>
+              <div className="grid grid-cols-1 gap-4">
+                <EventButton
+                  icon="💩"
+                  label="Poop"
+                  onClick={() => logEvent('POOP')}
+                  color="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                  disabled={loading}
+                />
+                <EventButton
+                  icon="💧"
+                  label="Pee"
+                  onClick={() => logEvent('PEE')}
+                  color="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                  disabled={loading}
+                />
+                <EventButton
+                  icon="☀️"
+                  label="Wake Up"
+                  onClick={() => logEvent('WAKE')}
+                  color="bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Recent Events Preview */}
+            {todayEvents.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">Recent Events</h2>
+                <EventTimeline events={todayEvents.slice(0, 3)} />
+              </div>
+            )}
+          </>
+        ) : (
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Event Timeline</h2>
+            <EventTimeline events={events} />
+          </div>
+        )}
       </main>
     </div>
-  );
+  )
 }
