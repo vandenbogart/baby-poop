@@ -9,29 +9,44 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-    const { timestamp, notes, type } = body
-    
+    const { timestamp, startTime, notes, type, duration } = body
+
     const updateData: {
       timestamp?: Date
       notes?: string | null
       type?: EventType
+      duration?: number | null
     } = {}
-    
-    if (timestamp) {
+
+    // Handle start/end time updates for duration events
+    if (startTime && timestamp) {
+      // Both times provided - calculate new duration
+      const start = new Date(startTime)
+      const end = new Date(timestamp)
+      const durationMinutes = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000))
+      updateData.timestamp = end
+      updateData.duration = durationMinutes
+    } else if (timestamp) {
       updateData.timestamp = new Date(timestamp)
     }
+
+    // Allow direct duration update
+    if (duration !== undefined && !startTime) {
+      updateData.duration = duration
+    }
+
     if (notes !== undefined) {
       updateData.notes = notes || null
     }
     if (type) {
       updateData.type = type as EventType
     }
-    
+
     const event = await prisma.event.update({
       where: { id },
       data: updateData
     })
-    
+
     return NextResponse.json(event)
   } catch (error) {
     console.error('Error updating event:', error)

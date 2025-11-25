@@ -93,6 +93,11 @@ export function EventTimeline({ events, onEventUpdate }: EventTimelineProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTime, setEditTime] = useState('')
   const [editDate, setEditDate] = useState('')
+  // For duration events (start and end time editing)
+  const [editStartTime, setEditStartTime] = useState('')
+  const [editStartDate, setEditStartDate] = useState('')
+  const [editEndTime, setEditEndTime] = useState('')
+  const [editEndDate, setEditEndDate] = useState('')
 
   if (events.length === 0) {
     return (
@@ -105,19 +110,45 @@ export function EventTimeline({ events, onEventUpdate }: EventTimelineProps) {
   }
 
   const handleEditClick = (event: Event) => {
-    const date = new Date(event.timestamp)
+    const endDate = new Date(event.timestamp)
     setEditingId(event.id)
-    setEditDate(date.toISOString().split('T')[0])
-    setEditTime(date.toTimeString().slice(0, 5))
+
+    if (event.duration) {
+      // For duration events, set both start and end times
+      const startDate = new Date(endDate.getTime() - event.duration * 60 * 1000)
+      setEditStartDate(startDate.toISOString().split('T')[0])
+      setEditStartTime(startDate.toTimeString().slice(0, 5))
+      setEditEndDate(endDate.toISOString().split('T')[0])
+      setEditEndTime(endDate.toTimeString().slice(0, 5))
+    } else {
+      // For non-duration events, use single timestamp
+      setEditDate(endDate.toISOString().split('T')[0])
+      setEditTime(endDate.toTimeString().slice(0, 5))
+    }
   }
 
-  const handleSave = async (eventId: string) => {
+  const handleSave = async (eventId: string, hasDuration: boolean) => {
     try {
-      const newTimestamp = new Date(`${editDate}T${editTime}`)
+      let body: Record<string, string>
+
+      if (hasDuration) {
+        // For duration events, send both start and end times
+        const startTimestamp = new Date(`${editStartDate}T${editStartTime}`)
+        const endTimestamp = new Date(`${editEndDate}T${editEndTime}`)
+        body = {
+          startTime: startTimestamp.toISOString(),
+          timestamp: endTimestamp.toISOString()
+        }
+      } else {
+        // For non-duration events, just send timestamp
+        const newTimestamp = new Date(`${editDate}T${editTime}`)
+        body = { timestamp: newTimestamp.toISOString() }
+      }
+
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timestamp: newTimestamp.toISOString() })
+        body: JSON.stringify(body)
       })
 
       if (response.ok) {
@@ -209,31 +240,72 @@ export function EventTimeline({ events, onEventUpdate }: EventTimelineProps) {
                   </div>
 
                   {isEditing ? (
-                    <div className="flex gap-2 items-center flex-wrap">
-                      <input
-                        type="date"
-                        value={editDate}
-                        onChange={(e) => setEditDate(e.target.value)}
-                        className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
-                      />
-                      <input
-                        type="time"
-                        value={editTime}
-                        onChange={(e) => setEditTime(e.target.value)}
-                        className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
-                      />
-                      <button
-                        onClick={() => handleSave(event.id)}
-                        className="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-xl text-sm font-bold hover:from-green-500 hover:to-emerald-600 shadow-md transition-all"
-                      >
-                        💾 Save
-                      </button>
-                      <button
-                        onClick={() => setEditingId(null)}
-                        className="px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl text-sm font-bold hover:from-gray-500 hover:to-gray-600 shadow-md transition-all"
-                      >
-                        ❌ Cancel
-                      </button>
+                    <div className="flex flex-col gap-3">
+                      {event.duration ? (
+                        // Duration event: show start and end time editors
+                        <>
+                          <div className="flex gap-2 items-center flex-wrap">
+                            <span className="text-sm font-bold opacity-70 w-12">Start:</span>
+                            <input
+                              type="date"
+                              value={editStartDate}
+                              onChange={(e) => setEditStartDate(e.target.value)}
+                              className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
+                            />
+                            <input
+                              type="time"
+                              value={editStartTime}
+                              onChange={(e) => setEditStartTime(e.target.value)}
+                              className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
+                            />
+                          </div>
+                          <div className="flex gap-2 items-center flex-wrap">
+                            <span className="text-sm font-bold opacity-70 w-12">End:</span>
+                            <input
+                              type="date"
+                              value={editEndDate}
+                              onChange={(e) => setEditEndDate(e.target.value)}
+                              className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
+                            />
+                            <input
+                              type="time"
+                              value={editEndTime}
+                              onChange={(e) => setEditEndTime(e.target.value)}
+                              className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        // Non-duration event: single time editor
+                        <div className="flex gap-2 items-center flex-wrap">
+                          <input
+                            type="date"
+                            value={editDate}
+                            onChange={(e) => setEditDate(e.target.value)}
+                            className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
+                          />
+                          <input
+                            type="time"
+                            value={editTime}
+                            onChange={(e) => setEditTime(e.target.value)}
+                            className="px-3 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium bg-white"
+                          />
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleSave(event.id, !!event.duration)}
+                          className="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-xl text-sm font-bold hover:from-green-500 hover:to-emerald-600 shadow-md transition-all"
+                        >
+                          💾 Save
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl text-sm font-bold hover:from-gray-500 hover:to-gray-600 shadow-md transition-all"
+                        >
+                          ❌ Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex gap-2">

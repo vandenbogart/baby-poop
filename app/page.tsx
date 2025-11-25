@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { EventButton } from '@/components/EventButton'
+import { TimerButton } from '@/components/TimerButton'
 import { EventTimeline } from '@/components/EventTimeline'
 import { StatsCard } from '@/components/StatsCard'
-import { DurationPicker } from '@/components/DurationPicker'
 import { FeedingPrompt } from '@/components/FeedingPrompt'
 import Link from 'next/link'
 
@@ -24,8 +24,6 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<string>('')
   
   // Modal states
-  const [showDurationPicker, setShowDurationPicker] = useState(false)
-  const [durationPickerType, setDurationPickerType] = useState<'NAP' | 'FEED' | null>(null)
   const [showFeedingPrompt, setShowFeedingPrompt] = useState(false)
   const [feedingPromptType, setFeedingPromptType] = useState<'POOP' | 'PEE' | null>(null)
 
@@ -67,7 +65,13 @@ export default function Home() {
     }
   }
 
-  const logEvent = async (type: 'POOP' | 'PEE' | 'NAP' | 'FEED' | 'DIAPER', duration?: number, duringFeeding?: boolean) => {
+  const logEvent = async (
+    type: 'POOP' | 'PEE' | 'NAP' | 'FEED' | 'DIAPER',
+    duration?: number,
+    duringFeeding?: boolean,
+    startTime?: Date,
+    endTime?: Date
+  ) => {
     setLoading(true)
     try {
       const response = await fetch('/api/events', {
@@ -77,7 +81,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           type,
-          timestamp: new Date().toISOString(),
+          timestamp: endTime ? endTime.toISOString() : new Date().toISOString(),
+          startTime: startTime ? startTime.toISOString() : null,
           duration: duration || null,
           duringFeeding: duringFeeding ?? null
         })
@@ -106,18 +111,14 @@ export default function Home() {
     setFeedingPromptType(null)
   }
 
-  const handleNapFeedClick = (type: 'NAP' | 'FEED') => {
-    setDurationPickerType(type)
-    setShowDurationPicker(true)
-  }
-
-  const handleDurationSelect = (minutes: number) => {
-    if (durationPickerType) {
-      logEvent(durationPickerType, minutes)
-    }
-    setShowDurationPicker(false)
-    setDurationPickerType(null)
-  }
+  const handleTimerComplete = useCallback((
+    type: 'NAP' | 'FEED',
+    startTime: Date,
+    endTime: Date,
+    durationMinutes: number
+  ) => {
+    logEvent(type, durationMinutes, undefined, startTime, endTime)
+  }, [])
 
   const todayEvents = events.filter(event => {
     const eventDate = new Date(event.timestamp)
@@ -229,18 +230,22 @@ export default function Home() {
                 🎯 Log Event
               </h2>
               <div className="grid grid-cols-1 gap-4">
-                <EventButton
+                <TimerButton
+                  type="FEED"
                   icon="🍼"
                   label="Feeding"
-                  onClick={() => handleNapFeedClick('FEED')}
                   color="bg-gradient-to-br from-pink-300 via-pink-400 to-rose-400 hover:from-pink-400 hover:to-rose-500"
+                  activeColor="bg-gradient-to-br from-pink-500 via-rose-500 to-red-500"
+                  onTimerComplete={(startTime, endTime, duration) => handleTimerComplete('FEED', startTime, endTime, duration)}
                   disabled={loading}
                 />
-                <EventButton
+                <TimerButton
+                  type="NAP"
                   icon="😴"
                   label="Nap"
-                  onClick={() => handleNapFeedClick('NAP')}
                   color="bg-gradient-to-br from-indigo-300 via-purple-400 to-purple-400 hover:from-indigo-400 hover:to-purple-500"
+                  activeColor="bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600"
+                  onTimerComplete={(startTime, endTime, duration) => handleTimerComplete('NAP', startTime, endTime, duration)}
                   disabled={loading}
                 />
                 <EventButton
@@ -288,20 +293,6 @@ export default function Home() {
       </main>
 
       {/* Modals */}
-      {showDurationPicker && durationPickerType && (
-        <DurationPicker
-          title={durationPickerType === 'NAP' ? 'Nap Duration' : 'Feeding Duration'}
-          icon={durationPickerType === 'NAP' ? '😴' : '🍼'}
-          increment={durationPickerType === 'NAP' ? 15 : 5}
-          maxMinutes={durationPickerType === 'NAP' ? 300 : 120}
-          onSelect={handleDurationSelect}
-          onCancel={() => {
-            setShowDurationPicker(false)
-            setDurationPickerType(null)
-          }}
-        />
-      )}
-
       {showFeedingPrompt && feedingPromptType && (
         <FeedingPrompt
           eventType={feedingPromptType}
